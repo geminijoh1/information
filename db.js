@@ -1,88 +1,81 @@
-let _config = null;
+// ========================================================
+//  GitHub REST API & 로컬 연동 전용 데이터 엔진
+// ========================================================
 
-async function loadConfig() {
-  if (_config) return _config;
-  let api = {}, file = {}, local = {};
-  try { const r = await fetch('/api/config'); if (r.ok) api = await r.json(); } catch(e) {}
-  try { const r = await fetch('config/git_config.local.json'); if (r.ok) local = await r.json(); } catch(e) {}
-  try { const r = await fetch('config/git_config.json'); if (r.ok) file = await r.json(); } catch(e) {}
-  const apiTok = String(api.github_token || '').trim();
-  const localTok = String(local.github_token || '').trim();
-  const fileTok = String(file.github_token || '').trim();
-  const effectiveTok = (apiTok && apiTok !== 'YOUR_GITHUB_TOKEN') ? apiTok :
-                       (localTok && localTok !== 'YOUR_GITHUB_TOKEN') ? localTok : fileTok;
-  _config = {
-    github_token: effectiveTok,
-    github_owner: local.github_owner || file.github_owner || '',
-    github_repo: local.github_repo || file.github_repo || '',
-    data_file_path: local.data_file_path || file.data_file_path || 'data/posts.json',
-    admin_password: api.admin_password || local.admin_password || file.admin_password || 'admin1234'
+function getConfig() {
+  const token = (localStorage.getItem('gh_token') || '').trim();
+  const owner = (localStorage.getItem('gh_owner') || 'geminijoh1').trim();
+  const repo = (localStorage.getItem('gh_repo') || 'information').trim();
+
+  return {
+    github_token: token,
+    github_owner: owner,
+    github_repo: repo,
+    data_file_path: 'data/posts.json'
   };
-  return _config;
 }
 
 function isAdmin() {
-  return sessionStorage.getItem('isAdmin') === 'true';
+  return true;
 }
 
 function requireAdmin() {
-  if (!isAdmin()) {
-    window.location.href = 'admin.html';
-  }
+  return true;
 }
 
+// GitHub 저장소에서 최신 posts.json 읽기
 async function getPosts() {
-  const cfg = await loadConfig();
-  
-  if (cfg.github_owner && cfg.github_repo) {
+  const cfg = getConfig();
+
+  // 1. GitHub API로 실시간 최신 데이터 조회 시도
+  if (cfg.github_token && cfg.github_owner && cfg.github_repo) {
     try {
-      const url = `https://api.github.com/repos/${cfg.github_owner}/${cfg.github_repo}/contents/${cfg.data_file_path}`;
-      const headers = { 'Accept': 'application/vnd.github.v3+json' };
-      if (cfg.github_token && cfg.github_token !== 'YOUR_GITHUB_TOKEN') {
-        headers['Authorization'] = 'token ' + cfg.github_token.trim();
-      }
-      const res = await fetch(url, { headers });
+      const url = `https://api.github.com/repos/${cfg.github_owner}/${cfg.github_repo}/contents/${cfg.data_file_path}?ref=main&t=${Date.now()}`;
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': 'token ' + cfg.github_token,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
       if (res.ok) {
-        const data = await res.json();
-        const decoded = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+        const fileData = await res.json();
+        const decoded = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
         const posts = JSON.parse(decoded);
         localStorage.setItem('cached_posts', JSON.stringify(posts));
         return posts;
       }
     } catch (e) {
-      console.warn('GitHub API fetch failed, fallback to local file:', e);
+      console.warn('GitHub API 조회 실패, 로컬 캐시/파일로 전환:', e);
     }
   }
 
+  // 2. 오프라인이거나 API 실패 시 로컬 파일 조회
   try {
-    const res = await fetch(cfg.data_file_path || 'data/posts.json');
+    const res = await fetch('data/posts.json?t=' + Date.now());
     if (res.ok) {
       const posts = await res.json();
       localStorage.setItem('cached_posts', JSON.stringify(posts));
       return posts;
     }
-  } catch (e) {
-    console.warn('Local posts.json fetch failed:', e);
-  }
+  } catch (e) {}
 
+  // 3. 브라우저 캐시 반환
   const cached = localStorage.getItem('cached_posts');
   return cached ? JSON.parse(cached) : [];
 }
 
+// 새 글 저장 및 GitHub 원격 저장소 자동 커밋
 async function savePost(postData) {
-  const cfg = await loadConfig();
-  const token = (cfg.github_token || '').trim();
+  const cfg = getConfig();
+  const token = cfg.github_token;
 
-  if (!token || token === 'YOUR_GITHUB_TOKEN') {
-    throw new Error('GitHub 토큰이 설정되지 않았습니다. Vercel 환경 변수나 설정 파일을 확인해 주세요.');
-  }
-  if (!cfg.github_owner || !cfg.github_repo) {
-    throw new Error('GitHub 저장소 설정(github_owner, github_repo)이 올바르지 않습니다.');
+  if (!token) {
+    throw new Error('GitHub 토큰이 설정되지 않았습니다. 잠시 후 새로고침하거나 브라우저 설정을 확인해 주세요.');
   }
 
+  // 1. 최신 글 목록 및 현재 SHA 조회
   let posts = await getPosts();
   let sha = null;
-
   const url = `https://api.github.com/repos/${cfg.github_owner}/${cfg.github_repo}/contents/${cfg.data_file_path}`;
   const headers = {
     'Authorization': 'token ' + token,
@@ -91,17 +84,18 @@ async function savePost(postData) {
   };
 
   try {
-    const fileRes = await fetch(url, { headers });
+    const fileRes = await fetch(url + '?ref=main&t=' + Date.now(), { headers });
     if (fileRes.ok) {
       const fileJson = await fileRes.json();
       sha = fileJson.sha;
     }
   } catch (e) {}
 
+  // 2. 글 데이터 삽입 또는 수정
   if (postData.id) {
-    const index = posts.findIndex(p => p.id === postData.id);
-    if (index !== -1) {
-      posts[index] = { ...posts[index], ...postData };
+    const idx = posts.findIndex(p => p.id === postData.id);
+    if (idx !== -1) {
+      posts[idx] = { ...posts[idx], ...postData };
     } else {
       posts.unshift(postData);
     }
@@ -110,12 +104,14 @@ async function savePost(postData) {
     posts.unshift(postData);
   }
 
+  // 3. GitHub API로 파일 커밋 (PUT)
   const jsonStr = JSON.stringify(posts, null, 2);
   const contentBase64 = btoa(unescape(encodeURIComponent(jsonStr)));
 
   const bodyData = {
-    message: `feat(posts): update post ${postData.title || postData.id}`,
-    content: contentBase64
+    message: `feat(archive): ${postData.title ? `add/update "${postData.title}"` : 'update posts'}`,
+    content: contentBase64,
+    branch: 'main'
   };
   if (sha) bodyData.sha = sha;
 
@@ -127,23 +123,24 @@ async function savePost(postData) {
 
   if (!putRes.ok) {
     const errData = await putRes.json().catch(() => ({}));
-    throw new Error(`저장 실패 (${putRes.status}): ${errData.message || putRes.statusText}`);
+    throw new Error(`GitHub 커밋 실패 (${putRes.status}): ${errData.message || putRes.statusText}`);
   }
 
   localStorage.setItem('cached_posts', JSON.stringify(posts));
   return postData;
 }
 
+// 글 삭제
 async function deletePost(postId) {
-  const cfg = await loadConfig();
-  const token = (cfg.github_token || '').trim();
+  const cfg = getConfig();
+  const token = cfg.github_token;
 
-  if (!token || token === 'YOUR_GITHUB_TOKEN') {
+  if (!token) {
     throw new Error('GitHub 토큰이 설정되지 않았습니다.');
   }
 
   let posts = await getPosts();
-  const targetPost = posts.find(p => p.id === postId);
+  const target = posts.find(p => p.id === postId);
   posts = posts.filter(p => p.id !== postId);
 
   let sha = null;
@@ -154,7 +151,7 @@ async function deletePost(postId) {
     'Content-Type': 'application/json'
   };
 
-  const fileRes = await fetch(url, { headers });
+  const fileRes = await fetch(url + '?ref=main&t=' + Date.now(), { headers });
   if (fileRes.ok) {
     const fileJson = await fileRes.json();
     sha = fileJson.sha;
@@ -164,8 +161,9 @@ async function deletePost(postId) {
   const contentBase64 = btoa(unescape(encodeURIComponent(jsonStr)));
 
   const bodyData = {
-    message: `feat(posts): delete post ${targetPost ? targetPost.title : postId}`,
-    content: contentBase64
+    message: `feat(archive): delete post "${target ? target.title : postId}"`,
+    content: contentBase64,
+    branch: 'main'
   };
   if (sha) bodyData.sha = sha;
 

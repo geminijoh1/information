@@ -1,4 +1,5 @@
-# Local config & secret tokens
+# Local secret configuration
+auth_local.js
 *.local.json
 config/git_config.local.json
 .env

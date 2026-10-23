@@ -425,6 +425,7 @@
     </div>
   </div>
 
+  <script src="auth_local.js"></script>
   <script src="db.js"></script>
   <script>
     sessionStorage.setItem('isAdmin', 'true');
@@ -454,8 +455,13 @@
       }).join('');
     }
 
+    function getTodayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
     function openQuickWriteModal() {
-      document.getElementById('modal-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modal-date').value = getTodayStr();
       document.getElementById('modal-title').value = '';
       document.getElementById('modal-content').value = '';
       document.getElementById('modal-status').className = 'hidden';
