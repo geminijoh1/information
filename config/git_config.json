@@ -1,0 +1,6 @@
+{
+  "github_token": "YOUR_GITHUB_TOKEN",
+  "github_owner": "geminijoh1",
+  "github_repo": "information",
+  "data_file_path": "data/posts.json"
+}

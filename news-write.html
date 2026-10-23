@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>기록 작성 및 수정 - 바이럴 가이드</title>
+  <link as="style" crossorigin="" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'sans-serif'],
+          },
+          colors: { brand: { red: '#E01E26' } }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: #111827;
+      background-color: #f9fafb;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-28">
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+    <div class="max-w-[1200px] mx-auto px-6 h-14 flex items-center justify-between gap-4">
+      <div class="flex items-center space-x-3 shrink-0">
+        <a class="flex items-center space-x-2 group" href="index.html">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-rose-600 to-red-500 flex items-center justify-center text-white font-black text-xs shadow-sm shadow-red-200">HD</div>
+          <span class="text-gray-900 font-bold text-base tracking-tight">LABS</span>
+          <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">기록 에디터</span>
+        </a>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <a href="admin.html" class="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors min-h-[44px] flex items-center">
+          취소
+        </a>
+        <button id="submit-btn" type="button" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-all min-h-[44px]">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          저장 및 GitHub 동기화
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-[1000px] w-full mx-auto px-4 sm:px-6 py-8">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+        <div>
+          <h1 id="page-title" class="text-xl sm:text-2xl font-bold text-gray-900">새 기록 작성</h1>
+          <p class="text-xs text-gray-500 mt-1">작성된 내용은 GitHub 저장소(data/posts.json)에 자동으로 안전하게 커밋됩니다.</p>
+        </div>
+      </div>
+
+      <div id="status-msg" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="sm:col-span-2 space-y-1.5">
+          <label class="block text-xs font-semibold text-gray-700">제목 <span class="text-red-500">*</span></label>
+          <input id="title-input" type="text" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all" placeholder="기록할 내용의 제목을 입력하세요"/>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-gray-700">카테고리</label>
+          <input id="category-input" list="cat-options" type="text" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all" placeholder="전략, 기술, 개발 등"/>
+          <datalist id="cat-options">
+            <option value="전략"></option>
+            <option value="기술"></option>
+            <option value="개발"></option>
+            <option value="회고"></option>
+            <option value="일상"></option>
+          </datalist>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-gray-700">작성일</label>
+          <input id="date-input" type="date" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all"/>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-gray-700">작성자</label>
+          <input id="author-input" type="text" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all" value="가동재"/>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-gray-700">목록 요약 (한 줄 설명)</label>
+        <input id="summary-input" type="text" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all" placeholder="목록 카드에 노출될 간단한 요약 문구를 입력하세요"/>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="block text-xs font-semibold text-gray-700">본문 내용 (마크다운 지원) <span class="text-red-500">*</span></label>
+          <div class="flex items-center rounded-lg bg-gray-100 p-0.5 text-xs">
+            <button id="tab-edit" type="button" class="px-3 py-1 rounded-md font-semibold bg-white text-gray-900 shadow-sm">편집</button>
+            <button id="tab-preview" type="button" class="px-3 py-1 rounded-md text-gray-500 hover:text-gray-900">미리보기</button>
+          </div>
+        </div>
+
+        <div id="editor-box">
+          <textarea id="content-input" rows="16" class="w-full px-4 py-3 text-sm font-mono bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all leading-relaxed" placeholder="## 소제목&#10;- 목록 1&#10;- 목록 2&#10;&#10;> 인용문&#10;`코드` 및 일반 텍스트"></textarea>
+        </div>
+
+        <div id="preview-box" class="hidden p-6 rounded-xl border border-gray-200 bg-white min-h-[360px] leading-relaxed">
+          <div id="preview-render" class="text-sm"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="db.js"></script>
+  <script>
+    requireAdmin();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const editingId = urlParams.get('id');
+
+    const titleInput = document.getElementById('title-input');
+    const categoryInput = document.getElementById('category-input');
+    const dateInput = document.getElementById('date-input');
+    const authorInput = document.getElementById('author-input');
+    const summaryInput = document.getElementById('summary-input');
+    const contentInput = document.getElementById('content-input');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusMsg = document.getElementById('status-msg');
+
+    const tabEdit = document.getElementById('tab-edit');
+    const tabPreview = document.getElementById('tab-preview');
+    const editorBox = document.getElementById('editor-box');
+    const previewBox = document.getElementById('preview-box');
+    const previewRender = document.getElementById('preview-render');
+
+    tabEdit.addEventListener('click', () => {
+      tabEdit.className = "px-3 py-1 rounded-md font-semibold bg-white text-gray-900 shadow-sm";
+      tabPreview.className = "px-3 py-1 rounded-md text-gray-500 hover:text-gray-900";
+      editorBox.classList.remove('hidden');
+      previewBox.classList.add('hidden');
+    });
+
+    tabPreview.addEventListener('click', () => {
+      tabPreview.className = "px-3 py-1 rounded-md font-semibold bg-white text-gray-900 shadow-sm";
+      tabEdit.className = "px-3 py-1 rounded-md text-gray-500 hover:text-gray-900";
+      previewRender.innerHTML = renderMarkdown(contentInput.value || '*내용이 없습니다.*');
+      editorBox.classList.add('hidden');
+      previewBox.classList.remove('hidden');
+    });
+
+    async function loadInitial() {
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.value = today;
+
+      if (editingId) {
+        document.getElementById('page-title').innerText = '기록 수정';
+        try {
+          const posts = await getPosts();
+          const target = posts.find(p => p.id === editingId);
+          if (target) {
+            titleInput.value = target.title || '';
+            categoryInput.value = target.category || '전략';
+            dateInput.value = target.date || today;
+            authorInput.value = target.author || '가동재';
+            summaryInput.value = target.summary || '';
+            contentInput.value = target.content || '';
+          }
+        } catch (e) {
+          console.error('기록 로드 실패:', e);
+        }
+      }
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+
+      if (!title) {
+        alert('제목을 입력해 주세요.');
+        titleInput.focus();
+        return;
+      }
+      if (!content) {
+        alert('본문 내용을 입력해 주세요.');
+        contentInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '저장 및 커밋 진행 중...';
+
+      statusMsg.className = "p-3 rounded-xl text-xs font-medium bg-blue-50 text-blue-700 block";
+      statusMsg.innerText = "GitHub API를 통해 원격 저장소 커밋 및 동기화 중입니다...";
+
+      const postData = {
+        title,
+        category: categoryInput.value.trim() || '일반',
+        date: dateInput.value || new Date().toISOString().split('T')[0],
+        author: authorInput.value.trim() || '가동재',
+        summary: summaryInput.value.trim() || markdownToText(content).slice(0, 80),
+        content
+      };
+
+      if (editingId) {
+        postData.id = editingId;
+      }
+
+      try {
+        await savePost(postData);
+        statusMsg.className = "p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-700 block";
+        statusMsg.innerText = "저장이 완료되었습니다! 잠시 후 상세 페이지로 이동합니다.";
+        setTimeout(() => {
+          window.location.href = `news-detail.html?id=${postData.id}`;
+        }, 800);
+      } catch (err) {
+        console.error(err);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '저장 및 GitHub 동기화';
+        statusMsg.className = "p-3 rounded-xl text-xs font-medium bg-red-50 text-red-700 block";
+        statusMsg.innerText = "저장 실패: " + err.message;
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadInitial);
+  </script>
+</body>
+</html>
