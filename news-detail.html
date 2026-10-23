@@ -147,7 +147,11 @@
         document.title = (post.title || '기록 상세') + ' - 바이럴 가이드';
         document.getElementById('post-category').innerText = post.category || '기록';
         document.getElementById('post-date').innerText = post.date || '';
-        document.getElementById('post-author').innerText = post.author || '가동재';
+        if (post.author) {
+          document.getElementById('post-author').innerText = post.author;
+        } else {
+          document.getElementById('post-author').classList.add('hidden');
+        }
 
         if (post.summary) {
           document.getElementById('post-summary').innerText = post.summary;

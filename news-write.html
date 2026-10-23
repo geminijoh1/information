@@ -87,7 +87,7 @@
         </div>
         <div class="space-y-1.5">
           <label class="block text-xs font-semibold text-gray-700">작성자</label>
-          <input id="author-input" type="text" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all" value="가동재"/>
+          <input id="author-input" type="text" class="w-full px-3.5 py-2.5 text-sm bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all" placeholder="작성자 이름 (선택)"/>
         </div>
       </div>
 
@@ -166,7 +166,7 @@
             titleInput.value = target.title || '';
             categoryInput.value = target.category || '전략';
             dateInput.value = target.date || today;
-            authorInput.value = target.author || '가동재';
+            authorInput.value = target.author || '';
             summaryInput.value = target.summary || '';
             contentInput.value = target.content || '';
           }
@@ -201,7 +201,7 @@
         title,
         category: categoryInput.value.trim() || '일반',
         date: dateInput.value || new Date().toISOString().split('T')[0],
-        author: authorInput.value.trim() || '가동재',
+        author: authorInput.value.trim() || '',
         summary: summaryInput.value.trim() || markdownToText(content).slice(0, 80),
         content
       };

@@ -72,9 +72,9 @@
         <div class="space-y-6">
           <div class="p-4 rounded-xl bg-gray-50 border border-gray-200/80 text-center">
             <img src="profile.png" alt="작성자 프로필" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-white shadow-sm mb-3"/>
-            <div class="font-bold text-sm text-gray-900">가동재 매니저</div>
-            <div class="text-xs text-gray-500 mb-2">프롬테크운영팀</div>
-            <p class="text-xs text-gray-600 leading-relaxed">부동산 바이럴 운영 전략 및 프롭테크 실전 데이터를 축적합니다.</p>
+            <div class="font-bold text-sm text-gray-900">개인 아카이브</div>
+            <div class="text-xs text-gray-500 mb-2">Knowledge Base</div>
+            <p class="text-xs text-gray-600 leading-relaxed">바이럴 운영 전략과 실전 데이터, 기술 인사이트를 축적합니다.</p>
           </div>
 
           <div>
@@ -179,8 +179,7 @@
                 <div class="flex items-center gap-2">
                   <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">${escapeHtml(post.category || '기록')}</span>
                   <span class="text-xs text-gray-400">${escapeHtml(post.date || '')}</span>
-                  <span class="text-xs text-gray-300">·</span>
-                  <span class="text-xs text-gray-500">${escapeHtml(post.author || '가동재')}</span>
+                  ${post.author ? `<span class="text-xs text-gray-300">·</span><span class="text-xs text-gray-500">${escapeHtml(post.author)}</span>` : ''}
                 </div>
                 <h2 class="text-base sm:text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors leading-snug">${escapeHtml(post.title)}</h2>
                 <p class="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">${escapeHtml(summary)}</p>

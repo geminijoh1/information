@@ -1,0 +1,6 @@
+# Local config & secret tokens
+*.local.json
+config/git_config.local.json
+.env
+.env.local
+node_modules/

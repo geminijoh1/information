@@ -2,17 +2,21 @@ let _config = null;
 
 async function loadConfig() {
   if (_config) return _config;
-  let api = {}, file = {};
+  let api = {}, file = {}, local = {};
   try { const r = await fetch('/api/config'); if (r.ok) api = await r.json(); } catch(e) {}
+  try { const r = await fetch('config/git_config.local.json'); if (r.ok) local = await r.json(); } catch(e) {}
   try { const r = await fetch('config/git_config.json'); if (r.ok) file = await r.json(); } catch(e) {}
   const apiTok = String(api.github_token || '').trim();
+  const localTok = String(local.github_token || '').trim();
   const fileTok = String(file.github_token || '').trim();
+  const effectiveTok = (apiTok && apiTok !== 'YOUR_GITHUB_TOKEN') ? apiTok :
+                       (localTok && localTok !== 'YOUR_GITHUB_TOKEN') ? localTok : fileTok;
   _config = {
-    github_token: (apiTok && apiTok !== 'YOUR_GITHUB_TOKEN') ? apiTok : fileTok,
-    github_owner: file.github_owner || '',
-    github_repo: file.github_repo || '',
-    data_file_path: file.data_file_path || 'data/posts.json',
-    admin_password: api.admin_password || file.admin_password || 'admin1234'
+    github_token: effectiveTok,
+    github_owner: local.github_owner || file.github_owner || '',
+    github_repo: local.github_repo || file.github_repo || '',
+    data_file_path: local.data_file_path || file.data_file_path || 'data/posts.json',
+    admin_password: api.admin_password || local.admin_password || file.admin_password || 'admin1234'
   };
   return _config;
 }
