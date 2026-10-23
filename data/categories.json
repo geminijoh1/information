@@ -1,0 +1,26 @@
+[
+  {
+    "id": "folder-wiki",
+    "code": "전략",
+    "name": "콘텐츠 위키",
+    "emoji": "📚"
+  },
+  {
+    "id": "folder-work",
+    "code": "기술",
+    "name": "업무 & 분석",
+    "emoji": "📕"
+  },
+  {
+    "id": "folder-dev",
+    "code": "개발",
+    "name": "개발 & 구조",
+    "emoji": "💻"
+  },
+  {
+    "id": "folder-etc",
+    "code": "기타",
+    "name": "기타 & 아이디어",
+    "emoji": "💡"
+  }
+]

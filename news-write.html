@@ -157,6 +157,14 @@
       const today = new Date().toISOString().split('T')[0];
       dateInput.value = today;
 
+      try {
+        const categories = await getCategories();
+        const dataList = document.getElementById('cat-options');
+        if (dataList && categories && categories.length > 0) {
+          dataList.innerHTML = categories.map(c => `<option value="${c.code}">${c.emoji || '📁'} ${c.name}</option>`).join('');
+        }
+      } catch (e) {}
+
       if (editingId) {
         document.getElementById('page-title').innerText = '기록 수정';
         try {

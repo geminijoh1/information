@@ -64,6 +64,121 @@ async function getPosts() {
   return cached ? JSON.parse(cached) : [];
 }
 
+const DEFAULT_CATEGORIES = [
+  { id: 'folder-wiki', code: '전략', name: '콘텐츠 위키', emoji: '📚' },
+  { id: 'folder-work', code: '기술', name: '업무 & 분석', emoji: '📕' },
+  { id: 'folder-dev', code: '개발', name: '개발 & 구조', emoji: '💻' },
+  { id: 'folder-etc', code: '기타', name: '기타 & 아이디어', emoji: '💡' }
+];
+
+// 카테고리(폴더) 목록 조회
+async function getCategories() {
+  const cfg = getConfig();
+  const catPath = 'data/categories.json';
+
+  // 1. GitHub API 조회
+  if (cfg.github_token && cfg.github_owner && cfg.github_repo) {
+    try {
+      const url = `https://api.github.com/repos/${cfg.github_owner}/${cfg.github_repo}/contents/${catPath}?ref=main&t=${Date.now()}`;
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': 'token ' + cfg.github_token,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      if (res.ok) {
+        const fileData = await res.json();
+        const decoded = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
+        const categories = JSON.parse(decoded);
+        localStorage.setItem('cached_categories', JSON.stringify(categories));
+        return categories;
+      }
+    } catch (e) {
+      console.warn('GitHub API 카테고리 조회 실패:', e);
+    }
+  }
+
+  // 2. 로컬 파일 조회
+  try {
+    const res = await fetch('data/categories.json?t=' + Date.now());
+    if (res.ok) {
+      const categories = await res.json();
+      localStorage.setItem('cached_categories', JSON.stringify(categories));
+      return categories;
+    }
+  } catch (e) {}
+
+  // 3. 캐시 또는 기본 카테고리 반환
+  const cached = localStorage.getItem('cached_categories');
+  return cached ? JSON.parse(cached) : DEFAULT_CATEGORIES;
+}
+
+// 신규 폴더(카테고리) 추가 및 GitHub 원격 저장소 동기화
+async function saveCategory(newCat) {
+  const cfg = getConfig();
+  const token = cfg.github_token;
+  const catPath = 'data/categories.json';
+
+  let categories = await getCategories();
+  if (!newCat.id) {
+    newCat.id = 'folder-' + Date.now();
+  }
+  if (!newCat.code) {
+    newCat.code = newCat.name;
+  }
+  if (!newCat.emoji) {
+    newCat.emoji = '📁';
+  }
+
+  const idx = categories.findIndex(c => c.id === newCat.id || c.name === newCat.name);
+  if (idx !== -1) {
+    categories[idx] = { ...categories[idx], ...newCat };
+  } else {
+    categories.push(newCat);
+  }
+
+  localStorage.setItem('cached_categories', JSON.stringify(categories));
+
+  if (token) {
+    let sha = null;
+    const url = `https://api.github.com/repos/${cfg.github_owner}/${cfg.github_repo}/contents/${catPath}`;
+    const headers = {
+      'Authorization': 'token ' + token,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
+
+    try {
+      const fileRes = await fetch(url + '?ref=main&t=' + Date.now(), { headers });
+      if (fileRes.ok) {
+        const fileJson = await fileRes.json();
+        sha = fileJson.sha;
+      }
+    } catch (e) {}
+
+    const jsonStr = JSON.stringify(categories, null, 2);
+    const contentBase64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    const bodyData = {
+      message: `feat(folder): add/update folder "${newCat.name}"`,
+      content: contentBase64,
+      branch: 'main'
+    };
+    if (sha) bodyData.sha = sha;
+
+    try {
+      await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(bodyData)
+      });
+    } catch (err) {
+      console.warn('GitHub 카테고리 원격 커밋 경고:', err);
+    }
+  }
+
+  return newCat;
+}
+
 // 새 글 저장 및 GitHub 원격 저장소 자동 커밋
 async function savePost(postData) {
   const cfg = getConfig();
