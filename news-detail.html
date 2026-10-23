@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>기록 상세 - 바이럴 가이드</title>
+  <title>기록 상세 - 개인 아카이브</title>
   <link as="style" crossorigin="" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
@@ -26,6 +26,13 @@
       color: #111827;
       background-color: #ffffff;
     }
+    html {
+      scroll-behavior: smooth;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
   </style>
 </head>
 <body class="min-h-screen bg-white text-gray-900 flex flex-col">
@@ -38,104 +45,477 @@
         </a>
       </div>
 
-      <div class="flex items-center space-x-3 text-[13px] font-medium text-gray-600">
-        <a href="news.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px]">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
-          목록으로
-        </a>
-        <div id="admin-actions" class="hidden items-center space-x-2">
-          <a id="edit-btn" href="#" class="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors min-h-[44px] flex items-center">
-            수정
-          </a>
-          <button id="delete-btn" type="button" class="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors min-h-[44px] flex items-center">
-            삭제
+      <div class="flex items-center space-x-4 text-[13px] font-medium text-gray-600">
+        <nav class="hidden lg:flex items-center space-x-5">
+          <a class="hover:text-red-600 transition-colors" href="index.html">홈</a>
+          <a class="text-red-600 font-semibold" href="news.html">전체 기록</a>
+          <a class="hover:text-red-600 transition-colors" href="admin.html">관리자</a>
+        </nav>
+        <div class="flex items-center space-x-2">
+          <button onclick="openQuickWriteModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-all min-h-[44px]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>페이지 추가</span>
           </button>
         </div>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 max-w-[800px] w-full mx-auto px-6 py-10 sm:py-14">
-    <div id="loading" class="text-center py-20 text-gray-400 text-sm">기록을 불러오는 중...</div>
-    
-    <div id="error-box" class="hidden text-center py-20">
-      <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-3">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
-      </div>
-      <h2 class="text-base font-bold text-gray-900 mb-1">기록을 찾을 수 없습니다</h2>
-      <p class="text-xs text-gray-500 mb-6">삭제되었거나 잘못된 접근입니다.</p>
-      <a href="news.html" class="inline-flex items-center px-4 py-2 text-xs font-semibold text-white bg-red-600 rounded-lg">전체 목록으로</a>
-    </div>
+  <div class="flex-1 max-w-[1536px] w-full mx-auto px-6 flex justify-between">
+    <!-- 좌측 날개 (노션 스타일 계층 트리 사이드바) -->
+    <aside class="w-64 shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-6 pr-5 border-r border-gray-100 hidden md:block select-none text-[13px]">
+      <div class="flex flex-col justify-between h-full">
+        <div class="space-y-4">
+          <!-- Notion Header -->
+          <div class="flex items-center justify-between px-2 py-1.5 rounded-lg bg-gray-50/80 hover:bg-gray-100 text-gray-700 transition-colors">
+            <div class="flex items-center gap-1.5 font-bold text-xs text-gray-800 cursor-pointer" onclick="location.href='news.html'">
+              <span>개인 페이지</span>
+              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+            </div>
+            <div class="flex items-center gap-0.5 text-gray-400">
+              <a href="news.html" title="아카이브 전체보기" class="p-1 hover:text-gray-700 rounded hover:bg-gray-200/60 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M7 17l10-10M7 7h10v10"></path></svg>
+              </a>
+              <button onclick="openQuickWriteModal()" title="새 페이지 추가" class="p-1 text-gray-500 hover:text-red-600 rounded hover:bg-red-50 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              </button>
+              <button onclick="location.href='admin.html'" title="관리자 설정" class="p-1 hover:text-gray-700 rounded hover:bg-gray-200/60 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+              </button>
+            </div>
+          </div>
 
-    <article id="post-content-area" class="hidden space-y-8">
-      <div class="space-y-3 border-b border-gray-100 pb-6">
-        <div class="flex items-center gap-2">
-          <span id="post-category" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100"></span>
-          <span id="post-date" class="text-xs text-gray-400"></span>
-          <span class="text-xs text-gray-300">·</span>
-          <span id="post-author" class="text-xs text-gray-600 font-medium"></span>
+          <!-- 홈 링크 -->
+          <a href="index.html" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
+            <span class="text-sm">🏠</span>홈 / 소개
+          </a>
+
+          <!-- 계층형 폴더 & 문서 트리 -->
+          <div class="space-y-3 pt-1">
+            <!-- 1. 콘텐츠 위키 폴더 -->
+            <div>
+              <div class="flex items-center justify-between px-2 py-1 text-xs font-bold text-gray-800 hover:bg-gray-100/70 rounded-md cursor-pointer" onclick="toggleFolder('folder-wiki')">
+                <span class="flex items-center gap-1.5">
+                  <svg id="folder-wiki-arrow" class="w-3 h-3 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                  <span>📚 콘텐츠 위키</span>
+                </span>
+                <span id="badge-wiki" class="text-[10px] text-gray-400 font-mono">0</span>
+              </div>
+              <div id="folder-wiki" class="pl-4 pr-1 mt-0.5 space-y-0.5"></div>
+            </div>
+
+            <!-- 2. 업무 & 분석 폴더 -->
+            <div>
+              <div class="flex items-center justify-between px-2 py-1 text-xs font-bold text-gray-800 hover:bg-gray-100/70 rounded-md cursor-pointer" onclick="toggleFolder('folder-work')">
+                <span class="flex items-center gap-1.5">
+                  <svg id="folder-work-arrow" class="w-3 h-3 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                  <span>📕 업무 &amp; 분석</span>
+                </span>
+                <span id="badge-work" class="text-[10px] text-gray-400 font-mono">0</span>
+              </div>
+              <div id="folder-work" class="pl-4 pr-1 mt-0.5 space-y-0.5"></div>
+            </div>
+
+            <!-- 3. 개발 & 구조 폴더 -->
+            <div>
+              <div class="flex items-center justify-between px-2 py-1 text-xs font-bold text-gray-800 hover:bg-gray-100/70 rounded-md cursor-pointer" onclick="toggleFolder('folder-dev')">
+                <span class="flex items-center gap-1.5">
+                  <svg id="folder-dev-arrow" class="w-3 h-3 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                  <span>💻 개발 &amp; 구조</span>
+                </span>
+                <span id="badge-dev" class="text-[10px] text-gray-400 font-mono">0</span>
+              </div>
+              <div id="folder-dev" class="pl-4 pr-1 mt-0.5 space-y-0.5"></div>
+            </div>
+
+            <!-- 4. 기타/아이디어 폴더 -->
+            <div>
+              <div class="flex items-center justify-between px-2 py-1 text-xs font-bold text-gray-800 hover:bg-gray-100/70 rounded-md cursor-pointer" onclick="toggleFolder('folder-etc')">
+                <span class="flex items-center gap-1.5">
+                  <svg id="folder-etc-arrow" class="w-3 h-3 text-gray-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                  <span>💡 기타 &amp; 아이디어</span>
+                </span>
+                <span id="badge-etc" class="text-[10px] text-gray-400 font-mono">0</span>
+              </div>
+              <div id="folder-etc" class="pl-4 pr-1 mt-0.5 space-y-0.5"></div>
+            </div>
+          </div>
         </div>
-        <h1 id="post-title" class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-snug"></h1>
-        <p id="post-summary" class="text-sm text-gray-600 bg-gray-50 p-4 rounded-xl border border-gray-100 leading-relaxed"></p>
+
+        <div class="pt-4 border-t border-gray-100">
+          <button onclick="openQuickWriteModal()" class="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all">
+            <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            새 페이지 작성하기
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 중앙 본문 영역 -->
+    <main class="flex-1 max-w-[780px] w-full py-8 px-0 lg:px-10">
+      <div id="loading" class="text-center py-20 text-gray-400 text-sm">기록을 불러오는 중...</div>
+      
+      <div id="error-box" class="hidden text-center py-20">
+        <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-3">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        <h2 class="text-base font-bold text-gray-900 mb-1">페이지를 찾을 수 없습니다</h2>
+        <p class="text-xs text-gray-500 mb-6">삭제되었거나 잘못된 접근입니다.</p>
+        <a href="news.html" class="inline-flex items-center px-4 py-2 text-xs font-semibold text-white bg-red-600 rounded-lg">전체 목록으로</a>
       </div>
 
-      <div id="post-body" class="text-gray-800 leading-relaxed text-sm sm:text-base"></div>
+      <article id="post-content-area" class="hidden space-y-8">
+        <div class="space-y-3 border-b border-gray-100 pb-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span id="post-category" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100"></span>
+              <span id="post-date" class="text-xs text-gray-400 font-mono"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <a id="edit-btn" href="#" class="px-2.5 py-1 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">수정</a>
+              <button id="delete-btn" type="button" class="px-2.5 py-1 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors">삭제</button>
+            </div>
+          </div>
+          <h1 id="post-title" class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-snug"></h1>
+          <p id="post-summary" class="text-sm text-gray-600 bg-gray-50 p-4 rounded-xl border border-gray-100 leading-relaxed"></p>
+        </div>
 
-      <div class="pt-8 border-t border-gray-100 flex items-center justify-between">
-        <a href="news.html" class="inline-flex items-center gap-2 text-xs font-semibold text-gray-600 hover:text-gray-900 py-3 min-h-[44px]">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="19" x2="5" y1="12" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-          전체 기록 목록
-        </a>
-        <a href="news-write.html" class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 py-3 min-h-[44px]">
-          새 글 작성 &rarr;
-        </a>
+        <div id="post-body" class="text-gray-800 leading-relaxed text-sm sm:text-base"></div>
+
+        <div class="pt-8 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-gray-500">
+          <a href="news.html" class="inline-flex items-center gap-1.5 hover:text-gray-900 py-2">
+            &larr; 전체 기록 목록
+          </a>
+          <button onclick="openQuickWriteModal()" class="inline-flex items-center gap-1 text-red-600 hover:text-red-700 py-2">
+            + 새 페이지 추가
+          </button>
+        </div>
+      </article>
+    </main>
+
+    <!-- 우측 날개 (본문 목차 TOC 자동 스크롤 네비게이션 & 정리) -->
+    <aside class="w-56 shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] py-6 pl-5 border-l border-gray-100 hidden lg:block select-none text-[13px]">
+      <div class="space-y-5">
+        <!-- 스크롤 진행률 게이지 -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-[11px] font-semibold text-gray-500">
+            <span>읽기 진행도</span>
+            <span id="scroll-percent" class="font-mono text-red-600">0%</span>
+          </div>
+          <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div id="scroll-progress-bar" class="h-full bg-red-500 transition-all duration-150" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- 페이지 목차 (TOC) -->
+        <div class="space-y-2.5">
+          <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="8" x2="21" y1="6" y2="6"></line><line x1="8" x2="21" y1="12" y2="12"></line><line x1="8" x2="21" y1="18" y2="18"></line><line x1="3" x2="3.01" y1="6" y2="6"></line><line x1="3" x2="3.01" y1="12" y2="12"></line><line x1="3" x2="3.01" y1="18" y2="18"></line></svg>
+              페이지 목차
+            </span>
+            <span id="toc-count" class="text-[10px] text-gray-400 font-mono"></span>
+          </h4>
+          <ul id="toc-list" class="space-y-1 text-xs text-gray-500 border-l border-gray-100 max-h-[calc(100vh-20rem)] overflow-y-auto pr-1">
+            <li class="pl-3 text-gray-400">목차 생성 중...</li>
+          </ul>
+        </div>
+
+        <!-- 긴 페이지 스크롤 빠른 정리 컨트롤러 -->
+        <div class="pt-3 border-t border-gray-100 space-y-1.5">
+          <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">스크롤 도우미</span>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex items-center justify-center gap-1 text-[11px] font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 py-1.5 rounded-lg border border-gray-200/80 transition-colors" title="맨 위로 가기">
+              <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+              맨 위로
+            </button>
+            <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" class="flex items-center justify-center gap-1 text-[11px] font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 py-1.5 rounded-lg border border-gray-200/80 transition-colors" title="맨 아래로 가기">
+              <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+              맨 아래
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-gray-100 space-y-2">
+          <button onclick="openQuickWriteModal()" class="flex items-center justify-center gap-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 w-full px-3 py-2 rounded-xl transition-all shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            새 페이지 추가
+          </button>
+        </div>
       </div>
-    </article>
-  </main>
+    </aside>
+  </div>
 
-  <footer class="py-8 border-t border-gray-100 text-center text-xs text-gray-400">
-    &copy; 2026 Personal Knowledge Base. All rights reserved.
-  </footer>
+  <!-- 즉시 새 페이지 작성 모달 (Quick Write Modal) -->
+  <div id="quick-write-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-base">📄</span>
+          <h3 class="text-base font-bold text-gray-900">새 페이지 추가</h3>
+        </div>
+        <button onclick="closeQuickWriteModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">제목</label>
+          <input id="modal-title" type="text" class="w-full px-3.5 py-2 text-sm bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none" placeholder="페이지 제목을 입력하세요"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">카테고리 (폴더)</label>
+            <select id="modal-cat" class="w-full px-3 py-2 text-xs bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 outline-none">
+              <option value="전략">📚 콘텐츠 위키</option>
+              <option value="기술">📕 업무 &amp; 분석</option>
+              <option value="개발">💻 개발 &amp; 구조</option>
+              <option value="기타">💡 기타 &amp; 아이디어</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">작성일</label>
+            <input id="modal-date" type="date" class="w-full px-3 py-2 text-xs bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 outline-none"/>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">본문 내용 (마크다운)</label>
+          <textarea id="modal-content" rows="6" class="w-full px-3.5 py-2 text-xs font-mono bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none" placeholder="여기에 메모나 기록할 내용을 자유롭게 적으세요..."></textarea>
+        </div>
+      </div>
+
+      <div id="modal-status" class="hidden text-xs font-medium p-2.5 rounded-lg"></div>
+
+      <div class="flex items-center justify-between pt-2">
+        <a href="news-write.html" class="text-xs text-gray-500 hover:text-gray-800 underline">상세 에디터로 작성하기</a>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeQuickWriteModal()" class="px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg">취소</button>
+          <button id="modal-submit-btn" type="button" onclick="submitQuickPage()" class="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm">페이지 생성</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="auth_local.js"></script>
   <script src="db.js"></script>
   <script>
+    let currentPostId = '';
+
+    function getTodayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function toggleFolder(folderId) {
+      const el = document.getElementById(folderId);
+      const arrow = document.getElementById(folderId + '-arrow');
+      if (!el) return;
+      el.classList.toggle('hidden');
+      if (arrow) arrow.classList.toggle('rotate-90');
+    }
+
+    function renderHierarchicalTree(posts, activeId) {
+      const wiki = posts.filter(p => p.category === '전략' || p.category === '위키');
+      const work = posts.filter(p => p.category === '기술' || p.category === '업무');
+      const dev = posts.filter(p => p.category === '개발');
+      const etc = posts.filter(p => !['전략', '위키', '기술', '업무', '개발'].includes(p.category));
+
+      document.getElementById('badge-wiki').innerText = wiki.length;
+      document.getElementById('badge-work').innerText = work.length;
+      document.getElementById('badge-dev').innerText = dev.length;
+      document.getElementById('badge-etc').innerText = etc.length;
+
+      function renderItems(list) {
+        if (list.length === 0) return '<div class="text-[11px] text-gray-400 py-0.5">글이 없습니다</div>';
+        return list.map(p => {
+          const isActive = p.id === activeId;
+          const activeClass = isActive ? 'bg-red-50 text-red-600 font-semibold border-l-2 border-red-600' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900';
+          return `
+            <a href="news-detail.html?id=${p.id}" class="flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors truncate ${activeClass}">
+              <span class="text-xs">📄</span>
+              <span class="truncate">${escapeHtml(p.title)}</span>
+            </a>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('folder-wiki').innerHTML = renderItems(wiki);
+      document.getElementById('folder-work').innerHTML = renderItems(work);
+      document.getElementById('folder-dev').innerHTML = renderItems(dev);
+      document.getElementById('folder-etc').innerHTML = renderItems(etc);
+
+      // 현재 보고 있는 글이 속한 폴더를 자동으로 열고 화살표 회전
+      if (activeId) {
+        let activeFolder = null;
+        if (wiki.some(p => p.id === activeId)) activeFolder = 'folder-wiki';
+        else if (work.some(p => p.id === activeId)) activeFolder = 'folder-work';
+        else if (dev.some(p => p.id === activeId)) activeFolder = 'folder-dev';
+        else if (etc.some(p => p.id === activeId)) activeFolder = 'folder-etc';
+
+        if (activeFolder) {
+          const folderEl = document.getElementById(activeFolder);
+          const arrowEl = document.getElementById(activeFolder + '-arrow');
+          if (folderEl) folderEl.classList.remove('hidden');
+          if (arrowEl) arrowEl.classList.add('rotate-90');
+        }
+      }
+    }
+
+    // 읽기 진행도 스크롤 리스너
+    window.addEventListener('scroll', () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight > 0) {
+        const percent = Math.min(100, Math.max(0, Math.round((window.scrollY / docHeight) * 100)));
+        const percentEl = document.getElementById('scroll-percent');
+        const barEl = document.getElementById('scroll-progress-bar');
+        if (percentEl) percentEl.innerText = percent + '%';
+        if (barEl) barEl.style.width = percent + '%';
+      }
+    });
+
+    function buildTOC() {
+      const postBody = document.getElementById('post-body');
+      const tocList = document.getElementById('toc-list');
+      const tocCount = document.getElementById('toc-count');
+      const headings = postBody.querySelectorAll('h1, h2, h3, h4');
+
+      if (headings.length === 0) {
+        tocList.innerHTML = '<li class="pl-3 text-gray-400">목차 항목이 없습니다</li>';
+        if (tocCount) tocCount.innerText = '';
+        return;
+      }
+
+      if (tocCount) tocCount.innerText = `${headings.length}개`;
+      tocList.innerHTML = '';
+      headings.forEach((heading, idx) => {
+        const id = 'heading-' + idx;
+        heading.id = id;
+        const level = heading.tagName.toLowerCase();
+        const indentClass = level === 'h3' ? 'pl-5 text-[11px]' : level === 'h4' ? 'pl-7 text-[11px]' : 'pl-2.5 font-medium';
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <a href="#${id}" onclick="event.preventDefault(); document.getElementById('${id}').scrollIntoView({behavior: 'smooth'})" class="toc-link block py-1 border-l-2 border-transparent text-gray-500 hover:text-gray-900 -ml-[1px] transition-colors truncate ${indentClass}">
+            ${escapeHtml(heading.innerText)}
+          </a>
+        `;
+        tocList.appendChild(li);
+      });
+
+      // 스크롤 감지 하이라이트
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const activeId = entry.target.id;
+            document.querySelectorAll('.toc-link').forEach(link => {
+              if (link.getAttribute('href') === '#' + activeId) {
+                link.classList.add('border-red-600', 'text-red-600', 'font-semibold', 'bg-red-50/50');
+                link.classList.remove('border-transparent', 'text-gray-500');
+              } else {
+                link.classList.remove('border-red-600', 'text-red-600', 'font-semibold', 'bg-red-50/50');
+                link.classList.add('border-transparent', 'text-gray-500');
+              }
+            });
+          }
+        });
+      }, { rootMargin: '0px 0px -60% 0px' });
+
+      headings.forEach(h => observer.observe(h));
+    }
+
+    function openQuickWriteModal() {
+      document.getElementById('modal-date').value = getTodayStr();
+      document.getElementById('modal-title').value = '';
+      document.getElementById('modal-content').value = '';
+      document.getElementById('modal-status').className = 'hidden';
+      document.getElementById('quick-write-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('modal-title').focus(), 50);
+    }
+
+    function closeQuickWriteModal() {
+      document.getElementById('quick-write-modal').classList.add('hidden');
+    }
+
+    async function submitQuickPage() {
+      const title = document.getElementById('modal-title').value.trim();
+      const cat = document.getElementById('modal-cat').value;
+      const date = document.getElementById('modal-date').value;
+      const content = document.getElementById('modal-content').value.trim();
+      const statusEl = document.getElementById('modal-status');
+      const submitBtn = document.getElementById('modal-submit-btn');
+
+      if (!title) {
+        alert('제목을 입력해 주세요.');
+        document.getElementById('modal-title').focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = '저장 중...';
+      statusEl.className = 'text-xs font-medium p-2.5 rounded-lg bg-blue-50 text-blue-700 block';
+      statusEl.innerText = 'GitHub 저장소에 동기화 저장 중입니다...';
+
+      const newPost = {
+        title,
+        category: cat,
+        date: date || getTodayStr(),
+        author: '',
+        summary: markdownToText(content).slice(0, 80) || '새로 작성된 페이지입니다.',
+        content: content || '## ' + title + '\n\n내용을 작성하세요.'
+      };
+
+      try {
+        const saved = await savePost(newPost);
+        statusEl.className = 'text-xs font-medium p-2.5 rounded-lg bg-emerald-50 text-emerald-700 block';
+        statusEl.innerText = '성공적으로 저장되었습니다!';
+        
+        setTimeout(() => {
+          window.location.href = `news-detail.html?id=${saved.id}`;
+        }, 500);
+      } catch (err) {
+        console.error(err);
+        submitBtn.disabled = false;
+        submitBtn.innerText = '페이지 생성';
+        statusEl.className = 'text-xs font-medium p-2.5 rounded-lg bg-red-50 text-red-700 block';
+        statusEl.innerText = '저장 실패: ' + err.message;
+      }
+    }
+
     async function initDetail() {
       const urlParams = new URLSearchParams(window.location.search);
-      const postId = urlParams.get('id');
+      currentPostId = urlParams.get('id');
 
-      if (!postId) {
+      if (!currentPostId) {
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('error-box').classList.remove('hidden');
         return;
       }
 
-      if (isAdmin()) {
-        const adminActions = document.getElementById('admin-actions');
-        adminActions.classList.remove('hidden');
-        adminActions.classList.add('flex');
-        document.getElementById('edit-btn').href = `news-write.html?id=${postId}`;
-        document.getElementById('delete-btn').addEventListener('click', async () => {
-          if (confirm('이 기록을 정말 삭제하시겠습니까? (GitHub 저장소에서도 함께 삭제됩니다)')) {
-            try {
-              document.getElementById('delete-btn').innerText = '삭제 중...';
-              document.getElementById('delete-btn').disabled = true;
-              await deletePost(postId);
-              alert('삭제가 완료되었습니다.');
-              window.location.href = 'news.html';
-            } catch (err) {
-              alert('삭제 실패: ' + err.message);
-              document.getElementById('delete-btn').innerText = '삭제';
-              document.getElementById('delete-btn').disabled = false;
-            }
+      document.getElementById('edit-btn').href = `news-write.html?id=${currentPostId}`;
+      document.getElementById('delete-btn').addEventListener('click', async () => {
+        if (confirm('이 기록을 정말 삭제하시겠습니까? (GitHub 저장소에서도 함께 삭제됩니다)')) {
+          try {
+            document.getElementById('delete-btn').innerText = '삭제 중...';
+            document.getElementById('delete-btn').disabled = true;
+            await deletePost(currentPostId);
+            alert('삭제가 완료되었습니다.');
+            window.location.href = 'news.html';
+          } catch (err) {
+            alert('삭제 실패: ' + err.message);
+            document.getElementById('delete-btn').innerText = '삭제';
+            document.getElementById('delete-btn').disabled = false;
           }
-        });
-      }
+        }
+      });
 
       try {
         const posts = await getPosts();
-        const post = posts.find(p => p.id === postId);
+        renderHierarchicalTree(posts, currentPostId);
 
+        const post = posts.find(p => p.id === currentPostId);
         document.getElementById('loading').classList.add('hidden');
 
         if (!post) {
@@ -144,14 +524,9 @@
         }
 
         document.getElementById('post-title').innerText = post.title || '';
-        document.title = (post.title || '기록 상세') + ' - 바이럴 가이드';
+        document.title = (post.title || '기록 상세') + ' - 개인 아카이브';
         document.getElementById('post-category').innerText = post.category || '기록';
         document.getElementById('post-date').innerText = post.date || '';
-        if (post.author) {
-          document.getElementById('post-author').innerText = post.author;
-        } else {
-          document.getElementById('post-author').classList.add('hidden');
-        }
 
         if (post.summary) {
           document.getElementById('post-summary').innerText = post.summary;
@@ -161,6 +536,8 @@
 
         document.getElementById('post-body').innerHTML = renderMarkdown(post.content || '');
         document.getElementById('post-content-area').classList.remove('hidden');
+
+        buildTOC();
       } catch (e) {
         console.error(e);
         document.getElementById('loading').classList.add('hidden');
